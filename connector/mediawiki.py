@@ -24,7 +24,7 @@ class mediawikiConnector(Connector):
 
     def commit_latest_B(self, new_content: str) -> None:
         self.page.text = new_content
-        self.page.save(summary="同步上游文档")
+        #self.page.save(summary="同步上游文档")
 
 
 class archlinuxcnPage(mediawikiConnector):
@@ -36,7 +36,7 @@ class archlinuxcnPage(mediawikiConnector):
 
         self.page = pywikibot.Page(site, page_title)
         upstream_page = pywikibot.Page(
-            upstream_site, self.translation_status_get()["upstream_title"]
+            upstream_site, self._translation_status_get()["upstream_title"]
         )
 
         super().__init__(self.page, upstream_page)
@@ -44,8 +44,8 @@ class archlinuxcnPage(mediawikiConnector):
     class TranslationStatus(TypedDict):
         upstream_title: str # 上游文档名
         upstream_ver: int # 上游文档版本
-
-    def translation_status_get(self) -> TranslationStatus:
+    
+    def _translation_status_get(self) -> TranslationStatus:
         pattern = r"\{\{翻译状态\|([^|]+)\|([^|]+)\|([^}]+)\}\}"
         match = re.search(pattern, self.page.text)
 
@@ -59,9 +59,9 @@ class archlinuxcnPage(mediawikiConnector):
             raise ValueError("未找到翻译状态模板")
         return {"upstream_title": upstream_title, "upstream_ver": int(upstream_ver)}
     
-    def translation_status_update(self,old_content:str) -> str:
+    def _translation_status_update(self,new_content:str) -> None:
         pattern = r"\{\{翻译状态\|([^|]+)\|([^|]+)\|([^}]+)\}\}"
-        match = re.search(pattern, old_content)
+        match = re.search(pattern, new_content)
         if match:
             # Extract the upstream title and version number
             upstream_title = match.group(1).strip()
@@ -71,16 +71,19 @@ class archlinuxcnPage(mediawikiConnector):
             current_date = datetime.now().strftime("%Y-%m-%d")
             
             # Replace the old date and version with the new ones
-            new_translation_status = f"{{{{翻译状态|{upstream_title}|{current_date}|{self.upstream_page.pageid}}}}}"
-            return re.sub(pattern, new_translation_status, old_content)
+            new_translation_status = f"{{{{翻译状态|{upstream_title}|{current_date}|{self.upstream_page.latest_revision_id}}}}}"
+            self.page.text= re.sub(pattern, new_translation_status, new_content)
         else:
-            raise ValueError("未找到翻译状态模板")
+            print("Translation status not found")
+            self.page.text = new_content
 
     def get_old_A(self) -> str:
-        return self.upstream_page.getOldVersion(int(self.translation_status_get()["upstream_ver"]))
+        return self.upstream_page.getOldVersion(int(self._translation_status_get()["upstream_ver"]))
     
     def commit_latest_B(self, new_content: str) -> None:
         # Update the page content and save it
-        self.page.text = self.translation_status_update(new_content)
-        self.page.save(summary="同步上游文档")
+        self._translation_status_update(new_content)
+        with open("latest1B.txt", "w", encoding="utf-8") as file:
+            file.write(self.page.text)
+        #self.page.save(summary="同步上游文档")
 
