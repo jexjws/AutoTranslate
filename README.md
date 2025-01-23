@@ -21,7 +21,7 @@
 0. 我们使用uv管理本项目包括python本身在内的依赖，若你没有uv，请先[下载安装uv](https://docs.astral.sh/uv/getting-started/installation/)   
 1. clone本项目，cd到本项目
 2. 在 `config.toml` 中改配置；你可以直接使用默认配置为 archwikicn 站点生成 `安装指南` 条目的翻译。
-3. `export OPENAI_API_KEY=your-api-key-here`
+3. 去 [deepseek开放平台](https://platform.deepseek.com/usage) 那边获取 API key，`export OPENAI_API_KEY=your-api-key-here`
 4. `uv run cli.py` 即可运行cli版本
 5. 翻译结果输出到 `output/latestB`
 ## 工具原理
