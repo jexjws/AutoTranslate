@@ -23,7 +23,7 @@
 2. 在 `config.toml` 中改配置；你可以直接使用默认配置为 archwikicn 站点生成 `安装指南` 条目的翻译。
 3. `export OPENAI_API_KEY=your-api-key-here`
 4. `uv run cli.py` 即可运行cli版本
-
+5. 翻译结果输出到 `output/latestB`
 ## 工具原理
 
 0. 一些简写
@@ -75,3 +75,7 @@
 ### 变更检测
 
 - `cli.py` 先使用 块的ID信息 做 diff 来检测块级别的变更，再以块为单位做diff检测文本层面的变更
+
+### TODO
+
+ - 基于AI的diff检测

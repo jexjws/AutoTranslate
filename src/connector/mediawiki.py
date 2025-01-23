@@ -51,7 +51,7 @@ class archwikicnPage(mediawikiConnector):
 
         if match:
             upstream_title = match.group(1).strip()  # 提取 "Installation guide"
-            upstream_date = match.group(2).strip() # 提取 "2024-03-01"
+            #upstream_date = match.group(2).strip() # 提取 "2024-03-01"
             upstream_ver = match.group(3).strip()  # 提取 "817521"
         else:
             print("！未找到翻译状态模板")

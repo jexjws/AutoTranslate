@@ -36,10 +36,10 @@ class AlignmentFactory():
     def __init__(self):
         pass
     @staticmethod
-    def create(type:str) -> Alignment:
+    def create(type:str,conf:dict) -> Alignment:
         if type == "wikitext":
             from .wikitext import WikitextAlignment
-            return WikitextAlignment()
+            return WikitextAlignment(conf["split_precision"])
         if type == "none":
             from .none import NoneAlignment
             return NoneAlignment()

@@ -9,15 +9,12 @@ from loguru import logger
 with open("config.toml", "rb") as f:
     conf = tomllib.load(f)
 
-
-
 def get_latestB(oldB: str, oldA: str, latestA: str, TOC:str) -> str:
-    logger.debug("get_latestB：接受参数：",oldB[0:10], oldA[0:10], latestA[0:10])
     if oldA == latestA:
-        logger.debug("get_latestB：","原文未变化")
+        logger.debug("原文未变化")
         return oldB #diff为none：原文没变化直接返回旧译文
-    if latestA == "":
-        logger.debug("get_latestB：","原文被删除")
+    if latestA.strip() == "":
+        logger.debug("原文被删除")
         return "" #diff为delete：原文被删除直接返回空
     
     def get_diff(oldA: str, latestA: str) -> str:
@@ -33,8 +30,8 @@ def get_latestB(oldB: str, oldA: str, latestA: str, TOC:str) -> str:
         return '\n'.join(diff)
 
 
-    prompt = f"你将获得中文站旧版文档的一部分（oldB）、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的中文文档（latestB）；中文站旧版文档若是英文的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n部分中文站旧版文档（oldB）：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,latestA)}\n\n最新版中文文档（latestB）："
-    logger.debug("get_latestB：发送至AI ==> ",prompt)
+    prompt = f"你将获得中文站旧版文档的一部分（oldB）、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的中文文档（latestB）；中文站旧版文档若是英文（未翻译）的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n部分中文站旧版文档（oldB）：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,latestA)}\n\n最新版中文文档（latestB）："
+    logger.debug("发送至AI ==> "+prompt[0:50])
 
     client = OpenAI(base_url=conf["OPENAI-api"]["base_url"])
     response = client.chat.completions.create(
@@ -47,12 +44,12 @@ def get_latestB(oldB: str, oldA: str, latestA: str, TOC:str) -> str:
         temperature=0.3,  # 控制生成文本的随机性
         stream=False
     )
-    logger.debug("get_latestB：AI返回 <== ",str(response.choices[0].message.content))
+    logger.debug("AI返回 <== "+str(response.choices[0].message.content)[0:50])
     return str(response.choices[0].message.content)
 
 
 
-alignment = AlignmentFactory.create(type=conf["system"]["alignment"])
+alignment = AlignmentFactory.create(type=conf["system"]["alignment"],conf=conf["alignment"][conf["system"]["alignment"]])
 connector = ConnectorFactory.create(type=conf["system"]["connector"], conf=conf["connector"][conf["system"]["connector"]])
 
 
@@ -66,8 +63,8 @@ logger.debug(f"Diff opcodes: {diff.get_opcodes()}")
 LatestB = [""] * len(OldABblocks.oldA)
 
 def apply_diff(tag:str,i1:int,i2:int,j1:int,j2:int):
-    for i in range(i1, i2):
-        logger.debug(f"进度： {i}/{LatestB}")
+    for i in range(i1, i2+1):
+        logger.debug(f"进度： {i}/{len(LatestB)-1}")
         if tag == "equal": # None / Update
             LatestB[i] = get_latestB(OldABblocks.oldB[i], OldABblocks.oldA[i], LatestAblocks.result[j1 + (i - i1)],LatestAblocks.toc_to_str())
         elif tag == "insert": 
@@ -80,7 +77,7 @@ def apply_diff(tag:str,i1:int,i2:int,j1:int,j2:int):
             raise ValueError(f"Unknown tag: {tag}")
         
 for tag, i1, i2, j1, j2 in diff.get_opcodes():
-    logger.debug(f"{tag:7} oldA[{i1}:{i2}] --> latestA[{j1}:{j2}]")
+    logger.debug(f"{tag:7} oldAblocks[{i1}:{i2}] --> latestAblocks[{j1}:{j2}]")
     apply_diff(tag, i1, i2, j1, j2)
 
 with open("output/latestB", "w", encoding="utf-8") as f:

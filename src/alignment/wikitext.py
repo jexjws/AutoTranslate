@@ -3,6 +3,8 @@ from typing import List
 
 
 class WikitextAlignment(Alignment):
+    def __init__(self, split_precision: int):
+        self.split_precision = split_precision
     def _wikitext_section_detect(self, line: str) -> int:
         """
         Check if the line is a Wikitext section header (e.g., '=== text ===').
@@ -13,7 +15,7 @@ class WikitextAlignment(Alignment):
         if line.startswith("=") and line.endswith("="):
             left_equals = len(line) - len(line.lstrip("="))
             right_equals = len(line) - len(line.rstrip("="))
-            if left_equals == right_equals and left_equals > 0 and left_equals <= 3: # left_equals <= 3 不要切分的太细
+            if left_equals == right_equals and left_equals > 0 and left_equals <= self.split_precision: 
                 return left_equals
         return 0
 
@@ -71,6 +73,7 @@ class WikitextAlignment(Alignment):
 
         # 生成TOC
         TOC = []
+        TOC.append("<条目开头>")
         for aline in Alines:
             if wikitext_section_detect(aline) > 0:
                 TOC.append(aline)
@@ -94,6 +97,7 @@ class WikitextAlignment(Alignment):
 
         # 生成TOC
         TOC = []
+        TOC.append("<条目开头>")
         for line in lines:
             if wikitext_section_detect(line) > 0:
                 TOC.append(line)
