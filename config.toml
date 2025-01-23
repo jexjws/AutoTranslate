@@ -11,7 +11,7 @@ max_tokens = 8192
 temperature = 0.3
 
 [connector.archwikicn]
-page_title = "Systemd"
+page_title = "安装指南"
 
 [alignment.wikitext]
 split_precision = 2 # 切分精度（值为2代表按二级、一级标题切分，值越大 切分的越细）
