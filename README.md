@@ -41,16 +41,16 @@
 - 基于 oldA oldB，使用 `src/alignment` 切分文档，获得 `oldA 中的文段 <=> oldB 中对应的文段` 对
 - 使用 `src/alignment` 切分 latestA
 
-3. **处理要处理的块：** 使用SequenceMatcher比较新旧文档的TOC结构，遍历差异操作：
+3. **处理块：** 使用SequenceMatcher比较新旧文档的TOC结构，遍历差异操作：
 
 - equal: 调用AI生成最新翻译，替换对应块
 - insert: 插入新块并调用AI生成翻译
 - delete: 删除对应块
 - replace: 调用AI生成最新翻译，替换对应块
 
-4. **应用差异：** 根据diff结果调用apply_diff函数处理每个差异操作，生成最新翻译
+3.1. **应用差异：** 根据diff结果调用apply_diff函数处理每个差异操作，生成最新翻译
 
-5. **把块块们合并：** 从修改后的 旧原文译文对 获取译文全文，使用 `src/connector` 对文本进行平台相关处理，最后得到 latestB
+4. **把块块们合并：** 从修改后的 旧原文译文对 获取译文全文，使用 `src/connector` 对文本进行平台相关处理，最后得到 latestB
 
 ### 不分块，全覆写模式
 
