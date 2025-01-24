@@ -63,7 +63,7 @@ logger.debug(f"Diff opcodes: {diff.get_opcodes()}")
 LatestB = [""] * len(OldABblocks.oldA)
 
 def apply_diff(tag:str,i1:int,i2:int,j1:int,j2:int):
-    for i in range(i1, i2+1):
+    for i in range(i1, i2):
         logger.debug(f"进度： {i}/{len(LatestB)-1}")
         if tag == "equal": # None / Update
             LatestB[i] = get_latestB(OldABblocks.oldB[i], OldABblocks.oldA[i], LatestAblocks.result[j1 + (i - i1)],LatestAblocks.toc_to_str())
