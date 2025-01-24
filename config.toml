@@ -14,4 +14,4 @@ temperature = 0.3
 page_title = "安装指南"
 
 [alignment.wikitext]
-split_precision = 2 # 切分精度（值为2代表按二级、一级标题切分，值越大 切分的越细）
+split_precision = 2 # 切分精度（值为2代表按一、二级标题切分，值越大 切分的越细）

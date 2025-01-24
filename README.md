@@ -37,27 +37,28 @@
 
 ### 分块覆写模式
 
-2. **拆分块：** 基于 oldA oldB，使用 `src/alignment` 切分文档，获得 `oldA 中的文段 <=> oldB 中对应的文段` 对，记作 `旧原文译文对`
+2. **拆分块：**
+- 基于 oldA oldB，使用 `src/alignment` 切分文档，获得 `oldA 中的文段 <=> oldB 中对应的文段` 对
+- 使用 `src/alignment` 切分 latestA
 
-3. **筛选出要处理的块：** 基于 oldA latestA，找出变更内容，生成 `旧原文对 <=> 对旧原文对所做的更改` 对：
-
-4. **处理要处理的块：** 使用SequenceMatcher比较新旧文档的TOC结构，遍历差异操作：
+3. **处理块：** 使用SequenceMatcher比较新旧文档的TOC结构，遍历差异操作：
 
 - equal: 调用AI生成最新翻译，替换对应块
 - insert: 插入新块并调用AI生成翻译
 - delete: 删除对应块
 - replace: 调用AI生成最新翻译，替换对应块
 
-5. **应用差异：** 根据diff结果调用apply_diff函数处理每个差异操作，生成最新翻译
+3.1. **应用差异：** 根据diff结果调用apply_diff函数处理每个差异操作，生成最新翻译
 
-6. **把块块们合并：** 从修改后的 旧原文译文对 获取译文全文，使用 `src/connector` 对文本进行平台相关处理，最后得到 latestB
+4. **把块块们合并：** 从修改后的 旧原文译文对 获取译文全文，使用 `src/connector` 对文本进行平台相关处理，最后得到 latestB
 
 ### 不分块，全覆写模式
 
-> token消耗大，但AI一次能获取到更多的信息，感觉更准确
-> 不值得为原文变更极少的条目使用
+> AI一次能获取到更多的信息，感觉更准确
 
-> 长文可能会超AI服务商的token限制导致latestB输出不完整
+> 不值得为原文变更极少的条目使用（token会浪费在没变更的地方）
+
+> 很长的文章会超AI服务商的token限制导致latestB输出不完整
 
 2. 从 oldA 、 latestA 生成diff信息
 3. 把 diff信息、oldB全文 直接给AI，AI返回 latestB
