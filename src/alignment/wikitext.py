@@ -78,7 +78,7 @@ class WikitextAlignment(Alignment):
             if wikitext_section_detect(aline) > 0:
                 TOC.append(aline)
 
-        return SplitABResult(oldA=ABlocks, oldB=BBlocks, TOC=TOC)
+        return SplitABResult(oldA=ABlocks, oldB=BBlocks, blockIDs=TOC)
     def split(self, text: str) -> SplitResult:
         wikitext_section_detect = self._wikitext_section_detect
 
@@ -101,4 +101,5 @@ class WikitextAlignment(Alignment):
         for line in lines:
             if wikitext_section_detect(line) > 0:
                 TOC.append(line)
-        return SplitResult(result=blocks, TOC=TOC)
+        return SplitResult(texts=blocks, blockIDs=TOC)
+

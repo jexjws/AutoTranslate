@@ -4,12 +4,13 @@ from difflib import SequenceMatcher
 from openai import OpenAI
 import tomllib
 from loguru import logger
-
+from typing import Literal
 # 以二进制读取模式打开文件
 with open("config.toml", "rb") as f:
     conf = tomllib.load(f)
 
 def get_latestB(oldB: str, oldA: str, latestA: str, TOC:str) -> str:
+    logger.debug(f"oldB: {oldB[0:30]}\n, oldA: {oldA[0:30]}, latestA: {latestA[0:30]}")
     if oldA == latestA:
         logger.debug("原文未变化")
         return oldB #diff为none：原文没变化直接返回旧译文
@@ -30,23 +31,31 @@ def get_latestB(oldB: str, oldA: str, latestA: str, TOC:str) -> str:
         return '\n'.join(diff)
 
 
-    prompt = f"你将获得中文站旧版文档的一部分（oldB）、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的中文文档（latestB）；中文站旧版文档若是英文（未翻译）的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n部分中文站旧版文档（oldB）：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,latestA)}\n\n最新版中文文档（latestB）："
-    logger.debug("发送至AI ==> "+prompt[0:50])
+    prompt = f"你将获得中文站旧版文档的一部分（oldB）、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的最新版中文文档（latestB）；中文站旧版文档若是英文（未翻译）的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n部分中文站旧版文档（oldB）：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,latestA)}\n\n最新版中文文档（latestB）："
+    import time
+    logger.debug("发送至AI ==> "+oldA[0:30])
 
     client = OpenAI(base_url=conf["OPENAI-api"]["base_url"])
-    response = client.chat.completions.create(
-        model=conf["OPENAI-api"]["model"], 
-        messages=[
-        {"role": "system", "content": conf["OPENAI-api"]["system_prompt"] },
-        {"role": "user", "content": prompt},
-    ],
-        max_tokens=8192, 
-        temperature=0.3,  # 控制生成文本的随机性
-        stream=False
-    )
-    logger.debug("AI返回 <== "+str(response.choices[0].message.content)[0:50])
-    return str(response.choices[0].message.content)
+    for i in range(3):
+        try:
+            response = client.chat.completions.create(
+                model=conf["OPENAI-api"]["model"], 
+                messages=[
+                {"role": "system", "content": conf["OPENAI-api"]["system_prompt"] },
+                {"role": "user", "content": prompt},
+            ],
+                max_tokens=8192, 
+                temperature=0.3,  # 控制生成文本的随机性
+                stream=False
+            )
+            logger.debug("AI返回 <== "+str(response.choices[0].message.content)[0:50])
+            return str(response.choices[0].message.content)
+        except Exception as e:
+            logger.error(f"OpenAI API 调用失败，正在重试 ({i+1}/{3})... 错误信息: {e}")
+            time.sleep(2)  # 等待 2 秒后重试
 
+    logger.error("达到最大重试次数，OpenAI API 调用失败")
+    raise  # 重新抛出异常
 
 
 alignment = AlignmentFactory.create(type=conf["system"]["alignment"],conf=conf["alignment"][conf["system"]["alignment"]])
@@ -56,30 +65,20 @@ connector = ConnectorFactory.create(type=conf["system"]["connector"], conf=conf[
 OldABblocks = alignment.split_AB(connector.get_old_A(), connector.get_old_B())
 LatestAblocks = alignment.split(connector.get_latest_A())
 
-logger.debug(f"OldABblocks.TOC: {OldABblocks.TOC}, LatestAblocks.TOC: {LatestAblocks.TOC}")
-diff = SequenceMatcher(None, OldABblocks.TOC, LatestAblocks.TOC)
+logger.debug(f"OldABblocks.TOC: {OldABblocks.blockIDs}, LatestAblocks.TOC: {LatestAblocks.blockIDs}")
+diff = SequenceMatcher(None, OldABblocks.blockIDs, LatestAblocks.blockIDs)
 
 logger.debug(f"Diff opcodes: {diff.get_opcodes()}")
-LatestB = [""] * len(OldABblocks.oldA)
+LatestB = [""] * len(LatestAblocks.texts)
 
-def apply_diff(tag:str,i1:int,i2:int,j1:int,j2:int):
-    for i in range(i1, i2):
-        logger.debug(f"进度： {i}/{len(LatestB)-1}")
-        if tag == "equal": # None / Update
-            LatestB[i] = get_latestB(OldABblocks.oldB[i], OldABblocks.oldA[i], LatestAblocks.result[j1 + (i - i1)],LatestAblocks.toc_to_str())
-        elif tag == "insert": 
-            LatestB.insert(i1, get_latestB("", "", LatestAblocks.result[j1 + (i - i1)],LatestAblocks.toc_to_str()))
-        elif tag == "delete":
-            LatestB.pop(i1)
-        elif tag == "replace":
-            LatestB[i] = get_latestB(OldABblocks.oldB[i], OldABblocks.oldA[i], LatestAblocks.result[j1 + (i - i1)],LatestAblocks.toc_to_str())
-        else:
-            raise ValueError(f"Unknown tag: {tag}")
-        
-for tag, i1, i2, j1, j2 in diff.get_opcodes():
-    logger.debug(f"{tag:7} oldAblocks[{i1}:{i2}] --> latestAblocks[{j1}:{j2}]")
-    apply_diff(tag, i1, i2, j1, j2)
+for i,LAtext in enumerate(LatestAblocks.texts):
+    logger.debug(f"进度： {i}/{len(LatestB)}")
+    if LatestAblocks.blockIDs[i] in OldABblocks.blockIDs:
+        oldABIndex = OldABblocks.blockIDs.index(LatestAblocks.blockIDs[i])
+        LatestB[i] = get_latestB(OldABblocks.oldB[oldABIndex], OldABblocks.oldA[oldABIndex], LatestAblocks.texts[i],LatestAblocks.toc_to_str())
+    else:
+        LatestB[i] = get_latestB("", "", LatestAblocks.texts[i],LatestAblocks.toc_to_str())
 
-with open("output/latestB", "w", encoding="utf-8") as f:
+with open("output/latest2B", "w", encoding="utf-8") as f:
     for i in range(len(LatestB)):
         f.write(connector.generate_latest_B(LatestB[i]+"\n"))

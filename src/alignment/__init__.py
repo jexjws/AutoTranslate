@@ -6,18 +6,18 @@ from dataclasses import dataclass
 class SplitABResult:
     oldA: List[str]  
     oldB: List[str]  
-    TOC : List[str]
+    blockIDs : List[str]
     
     def toc_to_str(self) -> str:
-        return "\n".join(self.TOC)
+        return "\n".join(self.blockIDs)
 
 @dataclass
 class SplitResult:
-    result: List[str] 
-    TOC : List[str]
+    texts: List[str] 
+    blockIDs : List[str]
     
     def toc_to_str(self) -> str:
-        return "\n".join(self.TOC)
+        return "\n".join(self.blockIDs)
 
 class Alignment(metaclass=ABCMeta):
     @abstractmethod
