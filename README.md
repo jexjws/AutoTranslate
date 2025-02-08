@@ -23,7 +23,7 @@
 2. 在 `config.toml` 中改配置；你可以直接使用默认配置为 archwikicn 站点生成 `安装指南` 条目的翻译。
 3. 去 [deepseek开放平台](https://platform.deepseek.com/usage) 那边获取 API key，`export OPENAI_API_KEY=your-api-key-here`
 4. `uv run cli.py` 即可运行cli版本
-5. 翻译结果输出到 `output/latestB`
+5. 翻译结果输出到 `output/newB`
 ## 工具原理
 
 0. 一些简写
@@ -31,7 +31,7 @@
    - oldA 旧版英文文档
    - newA 最新英文文档
    - oldB 旧版中文文档
-   - latestB 最新中文文档（本项目要生成的）
+   - newB 最新中文文档（本项目要生成的）
 
 1. 使用 `src/connector` 拉取 oldA, oldB, newA
 
@@ -46,7 +46,7 @@
 - 调用apply_diff函数处理每个差异操作，生成最新翻译
 - 会先查找有没有对应旧版，有的话把旧版信息一并塞给AI
 
-4. **把块块们合并：** 合并这些翻译，使用 `src/connector` 对文本进行平台相关处理，最后得到 latestB
+4. **把块块们合并：** 合并这些翻译，使用 `src/connector` 对文本进行平台相关处理，最后得到 newB
 
 ### 不分块，全覆写模式
 
@@ -54,10 +54,10 @@
 
 > 不值得为原文变更极少的条目使用（token会浪费在没变更的地方）
 
-> 很长的文章会超AI服务商的token限制导致latestB输出不完整
+> 很长的文章会超AI服务商的token限制导致newB输出不完整
 
 2. 从 oldA 、 newA 生成diff信息
-3. 把 diff信息、oldB全文 直接给AI，AI返回 latestB
+3. 把 diff信息、oldB全文 直接给AI，AI返回 newB
 
 ## 细节
 

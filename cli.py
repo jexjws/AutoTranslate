@@ -8,7 +8,7 @@ from loguru import logger
 with open("config.toml", "rb") as f:
     conf = tomllib.load(f)
 
-def get_latestB(oldB: str, oldA: str, newA: str, TOC:str) -> str:
+def get_newB(oldB: str, oldA: str, newA: str, TOC:str) -> str:
     logger.debug(f"oldB: {oldB[0:30]}\n, oldA: {oldA[0:30]}, newA: {newA[0:30]}")
     if oldA == newA:
         logger.debug("原文未变化")
@@ -30,7 +30,7 @@ def get_latestB(oldB: str, oldA: str, newA: str, TOC:str) -> str:
         return '\n'.join(diff)
 
 
-    prompt = f"你将获得中文站旧版文档的一部分（oldB）、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的最新版中文文档（latestB）；中文站旧版文档若是英文（未翻译）的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n部分中文站旧版文档（oldB）：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,newA)}\n\n最新版中文文档（latestB）："
+    prompt = f"你将获得中文站旧版文档的一部分（oldB）、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的最新版中文文档（newB）；中文站旧版文档若是英文（未翻译）的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n部分中文站旧版文档（oldB）：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,newA)}\n\n最新版中文文档（newB）："
     import time
     logger.debug("发送至AI ==> "+oldA[0:30])
 
@@ -68,16 +68,16 @@ logger.debug(f"OldABblocks.TOC: {OldABblocks.blockIDs}, NewAblocks.TOC: {NewAblo
 diff = SequenceMatcher(None, OldABblocks.blockIDs, NewAblocks.blockIDs)
 
 logger.debug(f"Diff opcodes: {diff.get_opcodes()}")
-LatestB = [""] * len(NewAblocks.texts)
+NewB = [""] * len(NewAblocks.texts)
 
 for i,LAtext in enumerate(NewAblocks.texts):
-    logger.debug(f"进度： {i}/{len(LatestB)}")
+    logger.debug(f"进度： {i}/{len(NewB)}")
     if NewAblocks.blockIDs[i] in OldABblocks.blockIDs:
         oldABIndex = OldABblocks.blockIDs.index(NewAblocks.blockIDs[i])
-        LatestB[i] = get_latestB(OldABblocks.oldB[oldABIndex], OldABblocks.oldA[oldABIndex], NewAblocks.texts[i],NewAblocks.toc_to_str())
+        NewB[i] = get_newB(OldABblocks.oldB[oldABIndex], OldABblocks.oldA[oldABIndex], NewAblocks.texts[i],NewAblocks.toc_to_str())
     else:
-        LatestB[i] = get_latestB("", "", NewAblocks.texts[i],NewAblocks.toc_to_str())
+        NewB[i] = get_newB("", "", NewAblocks.texts[i],NewAblocks.toc_to_str())
 
-with open("output/latestB", "w", encoding="utf-8") as f:
-    for i in range(len(LatestB)):
-        f.write(connector.generate_latest_B(LatestB[i]+"\n"))
+with open("output/newB", "w", encoding="utf-8") as f:
+    for i in range(len(NewB)):
+        f.write(connector.generate_latest_B(NewB[i]+"\n"))

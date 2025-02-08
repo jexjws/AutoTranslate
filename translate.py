@@ -9,11 +9,11 @@ def get_diff(oldA: str, newA: str) -> str:
     return '\n'.join(diff)
 
 # TODO: 不要直接让AI生成全部内容，应该以目录为单位，把需要翻译的段落提取出给他
-def generate_latestB(oldB: str, diff: str) -> str:
+def generate_newB(oldB: str, diff: str) -> str:
     client = OpenAI(api_key="sk-91825a9750c648e99c0899feddeeeb9a", base_url="https://api.deepseek.com")
 
     # 构建 prompt，将 oldB 和 diff 提供给 AI
-    prompt = f"以下是旧版中文文档（oldB）：，旧版英文文档和最新版英文文档的差异（diff信息），请根据这些信息生成最新版中文文档（latestB）：\n\n旧版中文文档（oldB）：\n{oldB}\n\n英文文档diff：\n{diff}\n\n最新版中文文档（latestB）："
+    prompt = f"以下是旧版中文文档（oldB）：，旧版英文文档和最新版英文文档的差异（diff信息），请根据这些信息生成最新版中文文档（newB）：\n\n旧版中文文档（oldB）：\n{oldB}\n\n英文文档diff：\n{diff}\n\n最新版中文文档（newB）："
 
     response = client.chat.completions.create(
         model="deepseek-chat",  # 选择合适的模型
@@ -42,13 +42,13 @@ def main():
     # 计算 oldA 和 newA 之间的差异
     diff = get_diff(oldA, newA)
     print(diff)
-    # 生成 latestB
-    latestB = generate_latestB(oldB, diff)
-    c.commit_latest_B(latestB)
+    # 生成 newB
+    newB = generate_newB(oldB, diff)
+    c.commit_latest_B(newB)
 
 
 
-    # c.commit_latest_B(latestB)
+    # c.commit_latest_B(newB)
     # print(c.page.text)
 
 if __name__ == "__main__":
