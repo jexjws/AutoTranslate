@@ -29,19 +29,19 @@
 0. 一些简写
 
    - oldA 旧版英文文档
-   - latestA 最新英文文档
+   - newA 最新英文文档
    - oldB 旧版中文文档
    - latestB 最新中文文档（本项目要生成的）
 
-1. 使用 `src/connector` 拉取 oldA, oldB, latestA
+1. 使用 `src/connector` 拉取 oldA, oldB, newA
 
 ### 分块覆写模式
 
 2. **拆分块：**
 - 基于 oldA oldB，使用 `src/alignment` 切分文档，获得 `oldA 中的文段 <=> oldB 中对应的文段` 对
-- 使用 `src/alignment` 切分 latestA
+- 使用 `src/alignment` 切分 newA
 
-3. **处理块：** 遍历 latestA：
+3. **处理块：** 遍历 newA：
 
 - 调用apply_diff函数处理每个差异操作，生成最新翻译
 - 会先查找有没有对应旧版，有的话把旧版信息一并塞给AI
@@ -58,7 +58,7 @@
 
 > 很长的文章会超AI服务商的token限制导致latestB输出不完整
 
-2. 从 oldA 、 latestA 生成diff信息
+2. 从 oldA 、 newA 生成diff信息
 3. 把 diff信息、oldB全文 直接给AI，AI返回 latestB
 
 ## 细节

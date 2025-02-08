@@ -1,11 +1,11 @@
 from src.connector.mediawiki import archwikicnPage
 from openai import OpenAI
 
-def get_diff(oldA: str, latestA: str) -> str:
-    # 这里可以使用 diff 工具来生成 oldA 和 latestA 之间的差异
+def get_diff(oldA: str, newA: str) -> str:
+    # 这里可以使用 diff 工具来生成 oldA 和 newA 之间的差异
     # 例如使用 difflib 库
     import difflib
-    diff = difflib.unified_diff(oldA.splitlines(), latestA.splitlines(), lineterm='')
+    diff = difflib.unified_diff(oldA.splitlines(), newA.splitlines(), lineterm='')
     return '\n'.join(diff)
 
 # TODO: 不要直接让AI生成全部内容，应该以目录为单位，把需要翻译的段落提取出给他
@@ -32,15 +32,15 @@ def main():
     c = archwikicnPage(page_title="安装指南")
     print(c.page.section())
     exit()
-    # 获取 oldA 和 latestA
+    # 获取 oldA 和 newA
     oldA = c.get_old_A()
-    latestA = c.get_latest_A()
+    newA = c.get_latest_A()
 
     # 获取 oldB
     oldB = c.get_old_B()
 
-    # 计算 oldA 和 latestA 之间的差异
-    diff = get_diff(oldA, latestA)
+    # 计算 oldA 和 newA 之间的差异
+    diff = get_diff(oldA, newA)
     print(diff)
     # 生成 latestB
     latestB = generate_latestB(oldB, diff)

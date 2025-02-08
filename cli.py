@@ -8,29 +8,29 @@ from loguru import logger
 with open("config.toml", "rb") as f:
     conf = tomllib.load(f)
 
-def get_latestB(oldB: str, oldA: str, latestA: str, TOC:str) -> str:
-    logger.debug(f"oldB: {oldB[0:30]}\n, oldA: {oldA[0:30]}, latestA: {latestA[0:30]}")
-    if oldA == latestA:
+def get_latestB(oldB: str, oldA: str, newA: str, TOC:str) -> str:
+    logger.debug(f"oldB: {oldB[0:30]}\n, oldA: {oldA[0:30]}, newA: {newA[0:30]}")
+    if oldA == newA:
         logger.debug("原文未变化")
         return oldB #diff为none：原文没变化直接返回旧译文
-    if latestA.strip() == "":
+    if newA.strip() == "":
         logger.debug("原文被删除")
         return "" #diff为delete：原文被删除直接返回空
     
-    def get_diff(oldA: str, latestA: str) -> str:
+    def get_diff(oldA: str, newA: str) -> str:
         import difflib
         # 生成统一的diff格式
         diff = difflib.unified_diff(
             oldA.splitlines(),
-            latestA.splitlines(),
+            newA.splitlines(),
             fromfile='oldA',
-            tofile='latestA',
+            tofile='newA',
             lineterm=''
         )
         return '\n'.join(diff)
 
 
-    prompt = f"你将获得中文站旧版文档的一部分（oldB）、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的最新版中文文档（latestB）；中文站旧版文档若是英文（未翻译）的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n部分中文站旧版文档（oldB）：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,latestA)}\n\n最新版中文文档（latestB）："
+    prompt = f"你将获得中文站旧版文档的一部分（oldB）、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的最新版中文文档（latestB）；中文站旧版文档若是英文（未翻译）的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n部分中文站旧版文档（oldB）：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,newA)}\n\n最新版中文文档（latestB）："
     import time
     logger.debug("发送至AI ==> "+oldA[0:30])
 
@@ -62,21 +62,21 @@ connector = ConnectorFactory.create(type=conf["system"]["connector"], conf=conf[
 
 
 OldABblocks = alignment.split_AB(connector.get_old_A(), connector.get_old_B())
-LatestAblocks = alignment.split(connector.get_latest_A())
+NewAblocks = alignment.split(connector.get_latest_A())
 
-logger.debug(f"OldABblocks.TOC: {OldABblocks.blockIDs}, LatestAblocks.TOC: {LatestAblocks.blockIDs}")
-diff = SequenceMatcher(None, OldABblocks.blockIDs, LatestAblocks.blockIDs)
+logger.debug(f"OldABblocks.TOC: {OldABblocks.blockIDs}, NewAblocks.TOC: {NewAblocks.blockIDs}")
+diff = SequenceMatcher(None, OldABblocks.blockIDs, NewAblocks.blockIDs)
 
 logger.debug(f"Diff opcodes: {diff.get_opcodes()}")
-LatestB = [""] * len(LatestAblocks.texts)
+LatestB = [""] * len(NewAblocks.texts)
 
-for i,LAtext in enumerate(LatestAblocks.texts):
+for i,LAtext in enumerate(NewAblocks.texts):
     logger.debug(f"进度： {i}/{len(LatestB)}")
-    if LatestAblocks.blockIDs[i] in OldABblocks.blockIDs:
-        oldABIndex = OldABblocks.blockIDs.index(LatestAblocks.blockIDs[i])
-        LatestB[i] = get_latestB(OldABblocks.oldB[oldABIndex], OldABblocks.oldA[oldABIndex], LatestAblocks.texts[i],LatestAblocks.toc_to_str())
+    if NewAblocks.blockIDs[i] in OldABblocks.blockIDs:
+        oldABIndex = OldABblocks.blockIDs.index(NewAblocks.blockIDs[i])
+        LatestB[i] = get_latestB(OldABblocks.oldB[oldABIndex], OldABblocks.oldA[oldABIndex], NewAblocks.texts[i],NewAblocks.toc_to_str())
     else:
-        LatestB[i] = get_latestB("", "", LatestAblocks.texts[i],LatestAblocks.toc_to_str())
+        LatestB[i] = get_latestB("", "", NewAblocks.texts[i],NewAblocks.toc_to_str())
 
 with open("output/latestB", "w", encoding="utf-8") as f:
     for i in range(len(LatestB)):
