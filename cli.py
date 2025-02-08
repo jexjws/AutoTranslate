@@ -79,6 +79,6 @@ for i,LAtext in enumerate(LatestAblocks.texts):
     else:
         LatestB[i] = get_latestB("", "", LatestAblocks.texts[i],LatestAblocks.toc_to_str())
 
-with open("output/latest2B", "w", encoding="utf-8") as f:
+with open("output/latestB", "w", encoding="utf-8") as f:
     for i in range(len(LatestB)):
         f.write(connector.generate_latest_B(LatestB[i]+"\n"))
