@@ -4,7 +4,6 @@ from difflib import SequenceMatcher
 from openai import OpenAI
 import tomllib
 from loguru import logger
-from typing import Literal
 # 以二进制读取模式打开文件
 with open("config.toml", "rb") as f:
     conf = tomllib.load(f)
