@@ -31,45 +31,44 @@ class WikitextAlignment(Alignment):
         # 遍历 Alines，遇到章节行，就用 Bilne_i+=1 找对应的 Blines 中的章节行
         ABlock_temp = ""
         BBlock_temp = ""
-        
-        for Aline in Alines:
-            uwa = wikitext_section_detect(Aline)
-            if uwa > 0:
-                while Bilne_i < len(Blines):
+
+        def traverse_Blines():
+            nonlocal Bilne_i
+            nonlocal BBlock_temp
+            Bline = ""
+            while Bilne_i < len(Blines):
                     Bline = Blines[Bilne_i]
                     uwu = wikitext_section_detect(Bline)
                     if uwu == 0:
-                        # 如果不是对应的章节行，继续添加到 BBlock_temp
+                         # 如果不是对应的章节行，继续添加到 BBlock_temp
                         BBlock_temp += Bline + "\n"
                         Bilne_i += 1
                     elif uwu == uwa:
                         # 找到对应的章节行，将当前的 BBlock_temp 存入 BBlocks
-                        ABlocks.append(ABlock_temp)
                         BBlocks.append(BBlock_temp)
-                        # 重置 ABlock_temp 和 BBlock_temp
-                        ABlock_temp = ""
-                        BBlock_temp = ""
-                        # 将当前章节行加入新的块
-                        BBlock_temp += Bline 
-                        ABlock_temp += Aline 
+                        # 重置 BBlock_temp ，将当前章节行加入新的块
+                        BBlock_temp = Bline
                         # 增加 Bilne_i，继续处理下一行
                         Bilne_i += 1
-                        break
+                        return
                     else:
                         raise ValueError(f"章节标题{Aline}与{Bline}的级别不匹配")
-                else:
-                    # 如果遍历完 Blines 仍未找到对应的章节行，处理剩余内容
-                    ABlocks.append(ABlock_temp)
-                    BBlocks.append(BBlock_temp)
-                    ABlock_temp = ""
-                    BBlock_temp = ""
+            else:
+                # 如果遍历完 Blines 仍未找到对应的章节行，处理剩余内容
+                BBlocks.append(BBlock_temp)
+
+        for Aline in Alines:
+            uwa = wikitext_section_detect(Aline)
+            if uwa > 0:
+                traverse_Blines()
+                ABlocks.append(ABlock_temp)
+                ABlock_temp = Aline 
             else:
                 ABlock_temp += Aline + "\n"
-        # 处理最后剩余的块
+        traverse_Blines()        
         if ABlock_temp:
+            # 处理最后剩余的块
             ABlocks.append(ABlock_temp)
-        if BBlock_temp:
-            BBlocks.append(BBlock_temp)
 
         # 生成TOC
         TOC = []

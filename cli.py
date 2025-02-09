@@ -1,6 +1,5 @@
 from src.connector import ConnectorFactory
 from src.alignment import AlignmentFactory
-from difflib import SequenceMatcher
 from openai import OpenAI
 import tomllib
 from loguru import logger
@@ -10,6 +9,7 @@ with open("config.toml", "rb") as f:
 
 def get_newB(oldB: str, oldA: str, newA: str, TOC:str) -> str:
     logger.debug(f"oldB: {oldB[0:30]}\n, oldA: {oldA[0:30]}, newA: {newA[0:30]}")
+    return ""
     if oldA == newA:
         logger.debug("原文未变化")
         return oldB #diff为none：原文没变化直接返回旧译文
@@ -65,18 +65,15 @@ OldABblocks = alignment.split_AB(connector.get_old_A(), connector.get_old_B())
 NewAblocks = alignment.split(connector.get_latest_A())
 
 logger.debug(f"OldABblocks.TOC: {OldABblocks.blockIDs}, NewAblocks.TOC: {NewAblocks.blockIDs}")
-diff = SequenceMatcher(None, OldABblocks.blockIDs, NewAblocks.blockIDs)
-
-logger.debug(f"Diff opcodes: {diff.get_opcodes()}")
 NewB = [""] * len(NewAblocks.texts)
 
-for i,LAtext in enumerate(NewAblocks.texts):
+for i,NAtext in enumerate(NewAblocks.texts):
     logger.debug(f"进度： {i}/{len(NewB)}")
     if NewAblocks.blockIDs[i] in OldABblocks.blockIDs:
         oldABIndex = OldABblocks.blockIDs.index(NewAblocks.blockIDs[i])
-        NewB[i] = get_newB(OldABblocks.oldB[oldABIndex], OldABblocks.oldA[oldABIndex], NewAblocks.texts[i],NewAblocks.toc_to_str())
+        NewB[i] = get_newB(OldABblocks.oldB[oldABIndex], OldABblocks.oldA[oldABIndex], NAtext ,NewAblocks.toc_to_str())
     else:
-        NewB[i] = get_newB("", "", NewAblocks.texts[i],NewAblocks.toc_to_str())
+        NewB[i] = get_newB("", "", NAtext ,NewAblocks.toc_to_str())
 
 with open("output/newB", "w", encoding="utf-8") as f:
     for i in range(len(NewB)):
