@@ -1,6 +1,6 @@
 /scripts
 /output
-
+config.toml
 # pywikibot/.gitignore
 
 throttle.ctrl
