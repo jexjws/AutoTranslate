@@ -8,8 +8,8 @@ with open("config.toml", "rb") as f:
     conf = tomllib.load(f)
 
 def get_newB(oldB: str, oldA: str, newA: str, TOC:str) -> str:
-    logger.debug(f"oldB: {oldB[0:30]}\n, oldA: {oldA[0:30]}, newA: {newA[0:30]}")
-    return ""
+    #logger.debug(f"oldB: {oldB[0:30]}\n, oldA: {oldA[0:30]}, newA: {newA[0:30]}")
+    #return ""
     if oldA == newA:
         logger.debug("原文未变化")
         return oldB #diff为none：原文没变化直接返回旧译文
@@ -68,7 +68,7 @@ logger.debug(f"OldABblocks.TOC: {OldABblocks.blockIDs}, NewAblocks.TOC: {NewAblo
 NewB = [""] * len(NewAblocks.texts)
 
 for i,NAtext in enumerate(NewAblocks.texts):
-    logger.debug(f"进度： {i}/{len(NewB)}")
+    logger.debug(f"进度： {i+1}/{len(NewB)}")
     if NewAblocks.blockIDs[i] in OldABblocks.blockIDs:
         oldABIndex = OldABblocks.blockIDs.index(NewAblocks.blockIDs[i])
         NewB[i] = get_newB(OldABblocks.oldB[oldABIndex], OldABblocks.oldA[oldABIndex], NAtext ,NewAblocks.toc_to_str())
