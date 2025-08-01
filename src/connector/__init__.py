@@ -20,14 +20,14 @@ class Connector(metaclass=ABCMeta):
 
 class ConnectorFactory():
     def __init__(self):
-        pass 
+        pass
     @staticmethod
     def create(type:str,conf:dict) -> Connector:
         if type == "archwikicn":
             from .mediawiki import archwikicnPage
             return archwikicnPage(page_title = conf["page_title"])
         if type == "wikipedia-zh":
-            from .mediawiki import archwikicnPage
-            return archwikicnPage(page_title = conf["page_title"])
+            from .mediawiki import wikipediazhPage
+            return wikipediazhPage(page_title = conf["page_title"])
         else:
             raise ValueError("Unknown Connector type")

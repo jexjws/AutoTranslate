@@ -82,3 +82,62 @@ class archwikicnPage(mediawikiConnector):
 
     def generate_latest_B(self, new_content: str) -> str:
         return self._translation_status_update(new_content)
+
+class wikipediazhPage(mediawikiConnector):
+    def __init__(self, page_title: str):
+        # 中文维基百科
+        site = pywikibot.Site(code='zh', fam='wikipedia')
+        # 英文维基百科
+        upstream_site = pywikibot.Site(code='en', fam='wikipedia')
+
+        self.page = pywikibot.Page(site, page_title)
+
+        # 尝试通过语言链接找到英文对应页面
+        upstream_title = self._find_upstream_title()
+        if not upstream_title:
+            print("！未找到英文对应页面")
+            upstream_title = input("请手动输入英文页面名: ")
+
+        upstream_page = pywikibot.Page(upstream_site, upstream_title)
+        super().__init__(self.page, upstream_page)
+
+    class TranslationStatus(TypedDict):
+        upstream_title: str  # 上游文档名
+        upstream_ver: int  # 上游文档版本
+
+    def _find_upstream_title(self) -> str | None:
+        """通过语言链接找到对应的英文页面"""
+        try:
+            # 获取页面的语言链接
+            langlinks = self.page.langlinks()
+            for link in langlinks:
+                if link.site.code == 'en':
+                    return link.title
+        except Exception:
+            pass
+
+        # 尝试通过Wikidata找到对应页面
+        try:
+            item = pywikibot.ItemPage.fromPage(self.page)
+            if item.exists():
+                return item.getSitelink(pywikibot.Site(code='en', fam='wikipedia'))
+        except Exception:
+            pass
+
+        return None
+
+    def _translation_status_get(self) -> TranslationStatus:
+        upstream_title = self.upstream_page.title()
+        upstream_ver = 0  # 0表示使用最新版本
+        return {"upstream_title": upstream_title, "upstream_ver": upstream_ver}
+
+    def _translation_status_update(self, new_content: str) -> str:
+        return new_content
+
+    def get_old_A(self) -> str:
+        """获取指定版本的上游英文页面内容"""
+        return "<sorry，由于技术原因，无法获取到旧版英文内容>"
+
+    def generate_latest_B(self, new_content: str) -> str:
+        """生成最新的中文页面内容，包含更新的翻译状态"""
+        return self._translation_status_update(new_content)
