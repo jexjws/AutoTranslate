@@ -1,0 +1,17 @@
+[system] #主程序翻译流程配置
+connector = "archwikicn"
+alignment = "wikitext" # 设为 none 的话，就不进行分块（全覆写模式）
+
+[OPENAI-api]
+base_url = "https://api.deepseek.com/v1"
+# 请通过环境变量 OPENAI_API_KEY 传递API密钥
+model = "deepseek-chat"
+system_prompt = "你是一位精通archlinux的热心小子，经常为archwiki做贡献；时刻牢记你在编辑的是wikitext，不是markdown"
+max_tokens = 8192
+temperature = 0.3
+
+[connector.archwikicn]
+page_title = "安装指南"
+
+[alignment.wikitext]
+split_precision = 2 # 切分精度（值为2代表按一、二级标题切分，值越大 切分的越细）
