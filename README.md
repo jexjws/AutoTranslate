@@ -4,6 +4,11 @@
 
 借助AI的能力，自动化 翻译Mediawiki条目的流程。
 
+## 目前支持
+
+维基百科 英文站 ==> 中文站
+archwiki 英文站 ==> 中文站
+
 ## 重要的事情说 3 遍
 
 > [!IMPORTANT]
@@ -18,7 +23,7 @@
 ## 运行本项目
 > 因作者能力有限，暂时只有cli版可用
 
-0. 我们使用uv管理本项目包括python本身在内的依赖，若你没有uv，请先[下载安装uv](https://docs.astral.sh/uv/getting-started/installation/)   
+0. 我们使用uv管理本项目包括python本身在内的依赖，若你没有uv，请先[下载安装uv](https://docs.astral.sh/uv/getting-started/installation/)
 1. clone本项目，cd到本项目，复制`config.toml.template`一份到`config.toml`
 2. 在 `config.toml` 中改配置；你可以直接使用默认配置为 archwikicn 站点生成 `安装指南` 条目的翻译。
 3. 去 [deepseek开放平台](https://platform.deepseek.com/usage) 那边获取 API key，`export OPENAI_API_KEY=your-api-key-here`
@@ -71,5 +76,4 @@
 
 ### 业务逻辑
 
-- `cli.py` 
-
+- `cli.py`

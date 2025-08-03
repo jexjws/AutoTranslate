@@ -33,9 +33,10 @@ async def get_newB_async(session, oldB: str, oldA: str, newA: str, TOC:str) -> s
         )
         return '\n'.join(diff)
 
+    logger.debug(f"oldB: {oldB[0:500]}\n, AAdiff: {get_diff(oldA,newA)[0:500]}")
 
-    prompt = f"你将获得中文站旧版文档的一部分、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的最新版中文文档；中文站旧版文档若有英文（未翻译）部分的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n中文站旧版文档：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,newA)}\n\n最新版中文文档："
-    logger.debug("发送至AI ==> "+oldA[0:30])
+    prompt = f"你将获得中文站旧版文档的一部分、对应的旧版英文文档和最新版英文文档的差异（diff），请根据这些信息生成对应的最新版中文文档；中文站旧版文档若有英文（未翻译）部分的话，就把其翻译成中文；你的输出将直接作用到文档上，所以不要输出其他任何内容：\n中文站旧版文档：\n{oldB}\n\n对应的英文文档diff：\n{get_diff(oldA,newA)}\n\n最新版中文文档：" #（若旧版使用繁体，最新版也需要使用繁体以避免编辑摘要显示太多修改打扰别的维基人）
+    # logger.debug("发送至AI ==> "+prompt)
 
     client = AsyncOpenAI(base_url=conf["OPENAI-api"]["base_url"],max_retries=3)
     for i in range(3):
